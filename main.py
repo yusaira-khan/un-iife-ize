@@ -19,14 +19,20 @@ def get_file_contents(path):
     return contents  # , (len(contents))
 
 
-def examine_var_statement(contents):
-    start = 0
+def detect_func_declaration(contents, start=0):
+    func_det_pat = re.compile(r"function\s+([\w$]*)(\(.*\))\s*\{")
+
+    pass
+
+
+def detect_var_statement(contents, start=0):
     # find var
     var_index = contents.find('var ', start)
     end_var = contents.find(';', var_index)
     if is_inside_function(contents, var_index, end_var):
         return None
-    return correct_var(contents,var_index,end_var)
+    return correct_var(contents, var_index, end_var)
+
 
 def correct_var(contents, var_index, end_var):
     statement = contents[var_index:end_var]
@@ -36,10 +42,10 @@ def correct_var(contents, var_index, end_var):
         d = decs[i]
 
         if '=' in d:
-            decs[i]=d.strip()
+            decs[i] = d.strip()
             continue
         # do nothing
-        decs[i] = d.strip()+'=undefined'
+        decs[i] = d.strip() + '=undefined'
     ret = ','.join(decs)
     ret += ';'
     return ret
