@@ -34,8 +34,11 @@ def detect_func_declaration(contents, start=0):
     return fun,r_brace_index
 
 
-
-
+def correct_func(contents,fun,end):
+    fun_name= fun#extract
+    fun_args = fun#extract
+    fun_body = fun[:end]#extract
+    return fun_name+'=function'+fun_args+fun_body
 
 
 def detect_var_statement(contents, start=0):
