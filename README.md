@@ -1,2 +1,7 @@
 # Un-IIFE-ize
-Remove immideately invoked function and variable declarations from your Meteor Script
+Remove immediately invoked function and variable declarations from your Meteor Script
+  
+  
+  
+  
+This is way harder than I expected
