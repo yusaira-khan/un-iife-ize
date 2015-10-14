@@ -21,8 +21,16 @@ def get_file_contents(path):
 
 def detect_func_declaration(contents, start=0):
     func_det_pat = re.compile(r"function\s+([\w$]*)(\(.*\))\s*\{")
+    fun = func_det_pat.search(contents,start)
+    if fun is None:
+        return None
+    l_brance_index = fun.end()
 
-    pass
+    r_brace_index=get_matched_braces_end(contents,l_brance_index+1)
+
+    if is_inside_function(contents,fun.start(),r_brace_index):
+        return None
+
 
 
 def detect_var_statement(contents, start=0):
