@@ -128,7 +128,3 @@ def get_matched_braces_end(content, start, start_tok=None, end_tok=None):
         l_b_count = content.count('{', start, r_b_index)
         count += l_b_count
     return r_b_index
-
-
-def examine_function(contents):
-    pass
