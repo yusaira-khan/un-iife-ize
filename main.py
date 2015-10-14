@@ -31,6 +31,11 @@ def detect_func_declaration(contents, start=0):
     if is_inside_function(contents,fun.start(),r_brace_index):
         return None
 
+    return fun,r_brace_index
+
+
+
+
 
 
 def detect_var_statement(contents, start=0):
