@@ -10,17 +10,40 @@ def boilerplate():
 
 class FunctionSimple(unittest.TestCase):
 
-    # def test_full(self):
-    #     statement = 'function hello(){}'
-    #     exp = 'hello=function(){};'
-    #     ret=main.fun_all(contents=statement)
-    #     self.assertEqual(exp,ret)
+    def test_full(self):
+        statement = 'function hello(){}'
+        exp = 'hello=function(){};'
+        ret=main.fun_all(contents=statement)
+        self.assertEqual(exp,ret)
 
     # def test_untouched(self):
     #     statement = 'function (){}'
     #     exp = 'function (){}'
     #     ret=main.fun_all(contents=statement)
     #     self.assertEqual(exp,ret)
+    def test_console(self):
+        statement = '''function hello(){
+    console.log('hello, world');
+}'''
+        exp = '''hello=function(){
+    console.log('hello, world');
+};'''
+        ret=main.fun_all(contents=statement)
+        self.assertEqual(exp,ret)
+
+    def test_if(self):
+        statement = '''function hello_world(){
+    if(true){
+        console.log('hello, world');
+    }
+}'''
+        exp = '''hello=function(){
+    if(true){
+        console.log('hello, world');
+    }
+}'''
+        ret=main.fun_all(contents=statement)
+        self.assertEqual(exp,ret)
 
     def test_info_blank(self):
         statement = 'function hello(){}'

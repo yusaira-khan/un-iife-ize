@@ -5,7 +5,8 @@ import re
 import string
 
 
-
+#TODO: handle anonymous functions
+#TODO:handle non declarations
 # TODO: check if for/var/function are words inside a string
 # print(os.path.dirname(os.path.realpath(__file__)))
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -20,12 +21,12 @@ def get_file_contents(path):
 
 
 def detect_func_declaration(contents, start=0):
-    func_det_pat = re.compile(r"function\s+([\w$]*)(\(.*\))\s*\{")
+    func_det_pat = re.compile(r"function\s+([\w$]+)(\(.*\))\s*\{")
     match = func_det_pat.search(contents, start)
     if match is None:
         return None
-    l_brance_index=match.end()
-    r_brace_index = get_matched_braces_end(contents, l_brance_index + 1)
+    l_brance_after=match.end()
+    r_brace_index = get_matched_braces_end(contents, l_brance_after )
 
     if is_inside_function(contents, match.start(), r_brace_index):
         return None
@@ -37,7 +38,7 @@ def get_fun_info(contents, match, rbrace):
         'name': match.group(1),
         'args': match.group(2),
         'statement_start': match.start(),
-        'lbrace_index': match.end(),
+        'lbrace_index': match.end()-1,
         'rbrace_index': rbrace,
 
     }
@@ -145,7 +146,7 @@ def get_matched_braces_end(content, start, start_tok=None, end_tok=None):
     content: entire file
     start: index of { + 1
     """
-    #FIXME
+    #FIXME: contains infinite loop
     count = 1
     r_b_index = -1
     while count != 0:
