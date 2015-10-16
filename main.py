@@ -21,24 +21,49 @@ def get_file_contents(path):
 
 def detect_func_declaration(contents, start=0):
     func_det_pat = re.compile(r"function\s+([\w$]*)(\(.*\))\s*\{")
-    fun = func_det_pat.search(contents,start)
-    if fun is None:
+    match = func_det_pat.search(contents, start)
+    if match is None:
         return None
-    l_brance_index = fun.end()
+    l_brance_index=match.end()
+    r_brace_index = get_matched_braces_end(contents, l_brance_index + 1)
 
-    r_brace_index=get_matched_braces_end(contents,l_brance_index+1)
-
-    if is_inside_function(contents,fun.start(),r_brace_index):
+    if is_inside_function(contents, match.start(), r_brace_index):
         return None
+    return match, r_brace_index
 
-    return fun,r_brace_index
+
+def get_fun_info(contents, match, rbrace):
+    ret = {
+        'name': match.group(1),
+        'args': match.group(2),
+        'statement_start': match.start(),
+        'lbrace_index': match.end(),
+        'rbrace_index': rbrace,
+
+    }
+    ret['body'] = contents[ret['lbrace_index']:ret['rbrace_index'] + 1]
+    return ret
 
 
-def correct_func(contents,fun,end):
-    fun_name= fun#extract
-    fun_args = fun#extract
-    fun_body = fun[:end]#extract
-    return fun_name+'=function'+fun_args+fun_body
+def correct_func(info):
+    dec = [None,None,None,None,None]
+    dec[0]= info['name']
+    dec[1] = '=function'
+    dec[2] = info['args']
+    dec[3] = info['body']
+    dec[4] = ';'
+    return ''.join(dec)
+
+def fun_all(contents,start=0):
+        match,rb = detect_func_declaration(contents,start)
+        info = get_fun_info(contents,match,rb)
+        ret = correct_func(info)
+        return ret
+
+def handle_func(contents, start=0):
+    match, end_fun = detect_func_declaration(contents)
+    # fun_start = match.start()
+    # fun_name =
 
 
 def detect_var_statement(contents, start=0):
@@ -120,6 +145,7 @@ def get_matched_braces_end(content, start, start_tok=None, end_tok=None):
     content: entire file
     start: index of { + 1
     """
+    #FIXME
     count = 1
     r_b_index = -1
     while count != 0:
