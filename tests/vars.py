@@ -32,6 +32,12 @@ class CheckVar(unittest.TestCase):
         statement = 'var hello="world", world="hello";'
         exp = 'hello="world",world="hello";'
         self.assertEqual(main.correct_var(statement,0,len(statement)-1),exp)
+
+    def test_inside_func(self):
+        statement ='''function poop(){var x;}'''
+        exp = None
+        self.assertEqual(main.detect_var_statement(statement),exp)
+
 if __name__ == '__main__':
 
     unittest.main()

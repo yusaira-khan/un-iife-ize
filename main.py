@@ -2,15 +2,14 @@ __author__ = 'yusaira-khan'
 
 import os
 import re
-import string
 
-
-# TODO: handle anonymous functions
 # TODO:handle non declarations
 # TODO: check if for/var/function are words inside a string
-#TODO: surround in class
+# TODO: surround in class
 
 func_det_pat = re.compile(r"function\s+([\w$]+)?(\(.*\))\s*\{")
+
+
 def get_file_contents(path):
     file = open(path, "r")
     contents = file.read()
@@ -19,7 +18,6 @@ def get_file_contents(path):
 
 
 def detect_func_declaration(contents, start=0):
-    #FIXME: always checking for names, so can't detect anonymous functions
     match = func_det_pat.search(contents, start)
     if match is None:
         return None, start
@@ -27,13 +25,52 @@ def detect_func_declaration(contents, start=0):
     l_brance_after = match.end()
     r_brace_index = get_matched_braces_end(contents, l_brance_after)
     if match.group(1) is None:
-        return None,r_brace_index
-
+        return None, r_brace_index
     #
     # if is_inside_function(contents, match.start(), r_brace_index):
     #     return None,r_brace_index
-    #TODO: probably don't need to check since top level functions will be skipped over
+    # TODO: probably don't need to check since top level functions will be skipped over
     return match, r_brace_index
+
+
+def get_matched_braces_end(content, start, start_tok=None, end_tok=None):
+    """
+    content: entire file
+    start: index of { + 1
+    """
+    expected_rb_count = 1
+    r_b_index = -1
+    while expected_rb_count > 0:
+        r_b_index = content.find('}', start)
+        l_b_count = content.count('{', start, r_b_index)
+        expected_rb_count += l_b_count - 1
+        start = r_b_index + 1
+
+    """
+     base case: simple function with no blocks (functions/loops/cconds) inside
+    before loop: count=1, rb=-1
+    in loop: rb at con[rb]==}
+    no more {, so lb = 0,
+
+    rb found so count--
+    start at rb, but not needed
+    loop not repeated
+    """
+
+    """
+    repeated case: many nested or chained blocks
+    before loop: count=1, rb=-1
+    in loop: rb at end of nested blocks
+    check number of { from start to }
+    expected rb count+= number of lb
+    start at rb, to check for more blocks,
+    keep looping till all rb found
+    finally, after all nesting is gone through, rb count= 1(function end })
+
+    when last rb found, count ==0, loop not repeated
+    return index of rb
+    """
+    return r_b_index
 
 
 def get_fun_info(contents, match, rbrace):
@@ -68,7 +105,6 @@ def fun_all(contents, start=0):
     return ret
 
 
-
 def detect_var_statement(contents, start=0):
     # find var
     var_index = contents.find('var ', start)
@@ -100,32 +136,18 @@ def is_inside_function(contents, start, end):
     if start < len_function_declaration:
         return False
 
-    # TODO: check for blocks inside function
+    # TODO: use function detection  function from above
     fun_index = contents.rfind('function', 0, start)
     if fun_index == -1:
         return False
     fun_start = contents.find('{', fun_index)
     fun_end = get_matched_braces_end(contents, fun_start + 1)
-    # for loop ends before var declaration
+    # for loop ends before
+    # var declaration
     if fun_end < start:
+        print("no function")
         return False
-    return True
-
-
-def is_inside_for_loop(contents, start, end):
-    len_for_loop = 4
-    if start < 4:
-        return False
-    for_index = contents.rfind('for', 0, start)
-    for_end = contents.find(')', for_index)
-
-    # no for loop exists before var declaration
-    if for_index == -1:
-        return False
-    # for loop ends before var declaration
-    if for_end < start:
-        return False
-
+    print("it's inside a function", fun_index, fun_end)
     return True
 
 
@@ -137,26 +159,3 @@ def handle_file(contents):
     parts[3] = "parts that don't need modification"
 
     return ''.join(parts)
-
-
-#####
-# THIS IS ANNOYING
-#####
-
-def get_matched_braces_end(content, start, start_tok=None, end_tok=None):
-    """
-    content: entire file
-    start: index of { + 1
-    """
-    # FIXME: contains infinite loop
-    tries = 5
-    count = 1
-    r_b_index = -1
-    while count != 0 and tries != 0:
-        tries -= 1
-        r_b_index = content.find('}', start)
-
-        l_b_count = content.count('{', start, r_b_index)
-        count += l_b_count - 1
-        start = r_b_index +1
-    return r_b_index
