@@ -32,7 +32,7 @@ class FunctionSimple(unittest.TestCase):
         self.assertEqual(exp,ret)
 
     def test_if(self):
-        statement = '''function hello_world(){
+        statement = '''function hello(){
     if(true){
         console.log('hello, world');
     }
@@ -41,7 +41,7 @@ class FunctionSimple(unittest.TestCase):
     if(true){
         console.log('hello, world');
     }
-}'''
+};'''
         ret=main.fun_all(contents=statement)
         self.assertEqual(exp,ret)
 

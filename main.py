@@ -5,12 +5,9 @@ import re
 import string
 
 
-#TODO: handle anonymous functions
-#TODO:handle non declarations
+# TODO: handle anonymous functions
+# TODO:handle non declarations
 # TODO: check if for/var/function are words inside a string
-# print(os.path.dirname(os.path.realpath(__file__)))
-current_dir = os.path.dirname(os.path.realpath(__file__))
-speex_path = os.path.join(current_dir, 'speex/speex.min.js')
 
 
 def get_file_contents(path):
@@ -25,8 +22,8 @@ def detect_func_declaration(contents, start=0):
     match = func_det_pat.search(contents, start)
     if match is None:
         return None
-    l_brance_after=match.end()
-    r_brace_index = get_matched_braces_end(contents, l_brance_after )
+    l_brance_after = match.end()
+    r_brace_index = get_matched_braces_end(contents, l_brance_after)
 
     if is_inside_function(contents, match.start(), r_brace_index):
         return None
@@ -38,7 +35,7 @@ def get_fun_info(contents, match, rbrace):
         'name': match.group(1),
         'args': match.group(2),
         'statement_start': match.start(),
-        'lbrace_index': match.end()-1,
+        'lbrace_index': match.end() - 1,
         'rbrace_index': rbrace,
 
     }
@@ -47,19 +44,22 @@ def get_fun_info(contents, match, rbrace):
 
 
 def correct_func(info):
-    dec = [None,None,None,None,None]
-    dec[0]= info['name']
-    dec[1] = '=function'
-    dec[2] = info['args']
-    dec[3] = info['body']
-    dec[4] = ';'
+    dec = [
+        info['name'],
+        '=function',
+        info['args'],
+        info['body'],
+        ';']
+    print(dec)
     return ''.join(dec)
 
-def fun_all(contents,start=0):
-        match,rb = detect_func_declaration(contents,start)
-        info = get_fun_info(contents,match,rb)
-        ret = correct_func(info)
-        return ret
+
+def fun_all(contents, start=0):
+    match, rb = detect_func_declaration(contents, start)
+    info = get_fun_info(contents, match, rb)
+    ret = correct_func(info)
+    return ret
+
 
 def handle_func(contents, start=0):
     match, end_fun = detect_func_declaration(contents)
@@ -146,12 +146,15 @@ def get_matched_braces_end(content, start, start_tok=None, end_tok=None):
     content: entire file
     start: index of { + 1
     """
-    #FIXME: contains infinite loop
+    # FIXME: contains infinite loop
+    tries = 5
     count = 1
     r_b_index = -1
-    while count != 0:
+    while count != 0 and tries != 0:
+        tries -= 1
         r_b_index = content.find('}', start)
-        count -= 1
+
         l_b_count = content.count('{', start, r_b_index)
-        count += l_b_count
+        count += l_b_count - 1
+        start = r_b_index +1
     return r_b_index
