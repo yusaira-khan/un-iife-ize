@@ -8,8 +8,9 @@ import string
 # TODO: handle anonymous functions
 # TODO:handle non declarations
 # TODO: check if for/var/function are words inside a string
+#TODO: surround in class
 
-
+func_det_pat = re.compile(r"function\s+([\w$]+)?(\(.*\))\s*\{")
 def get_file_contents(path):
     file = open(path, "r")
     contents = file.read()
@@ -18,15 +19,20 @@ def get_file_contents(path):
 
 
 def detect_func_declaration(contents, start=0):
-    func_det_pat = re.compile(r"function\s+([\w$]+)(\(.*\))\s*\{")
+    #FIXME: always checking for names, so can't detect anonymous functions
     match = func_det_pat.search(contents, start)
     if match is None:
-        return None
+        return None, start
+
     l_brance_after = match.end()
     r_brace_index = get_matched_braces_end(contents, l_brance_after)
+    if match.group(1) is None:
+        return None,r_brace_index
 
-    if is_inside_function(contents, match.start(), r_brace_index):
-        return None
+    #
+    # if is_inside_function(contents, match.start(), r_brace_index):
+    #     return None,r_brace_index
+    #TODO: probably don't need to check since top level functions will be skipped over
     return match, r_brace_index
 
 
@@ -55,15 +61,12 @@ def correct_func(info):
 
 def fun_all(contents, start=0):
     match, rb = detect_func_declaration(contents, start)
+    if match is None:
+        return contents
     info = get_fun_info(contents, match, rb)
     ret = correct_func(info)
     return ret
 
-
-def handle_func(contents, start=0):
-    match, end_fun = detect_func_declaration(contents)
-    # fun_start = match.start()
-    # fun_name =
 
 
 def detect_var_statement(contents, start=0):

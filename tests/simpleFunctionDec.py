@@ -16,11 +16,17 @@ class FunctionSimple(unittest.TestCase):
         ret=main.fun_all(contents=statement)
         self.assertEqual(exp,ret)
 
-    # def test_untouched(self):
-    #     statement = 'function (){}'
-    #     exp = 'function (){}'
-    #     ret=main.fun_all(contents=statement)
-    #     self.assertEqual(exp,ret)
+    def test_untouched(self):
+        statement = 'function (){}'
+        exp = 'function (){}'
+        ret=main.fun_all(contents=statement)
+        # ret=main.detect_func_declaration(statement)[0]#main.fun_all(contents=statement)
+        # print(ret.group(0),ret.start(0),ret.end(0))
+        # print(ret.group(1),ret.start(1),ret.end(1))
+        # print(ret.group(2),ret.start(2),ret.end(2))
+        self.assertEqual(exp,ret)
+
+
     def test_console(self):
         statement = '''function hello(){
     console.log('hello, world');
