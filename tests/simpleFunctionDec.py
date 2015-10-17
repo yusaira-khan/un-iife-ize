@@ -45,6 +45,24 @@ class FunctionSimple(unittest.TestCase):
         ret=main.fun_all(contents=statement)
         self.assertEqual(exp,ret)
 
+    def test_nested_if(self):
+        statement = '''function hello(){
+    if(true){
+        console.log('hello, world');
+        if(true) {
+        }
+    }
+}'''
+        exp = '''hello=function(){
+    if(true){
+        console.log('hello, world');
+        if(true) {
+        }
+    }
+};'''
+        ret=main.fun_all(contents=statement)
+        self.assertEqual(exp,ret)
+
     def test_info_blank(self):
         statement = 'function hello(){}'
 

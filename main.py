@@ -50,7 +50,6 @@ def correct_func(info):
         info['args'],
         info['body'],
         ';']
-    print(dec)
     return ''.join(dec)
 
 
