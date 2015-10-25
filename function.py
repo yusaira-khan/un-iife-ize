@@ -22,14 +22,20 @@ class Function():
         self.contents = contents
         self.unmodified = []
         self.all = []
-        self.start = 0
 
-    def extract_from_contents(self):
+
+    def extract_all(self):
         search_start = 0
+        content_end = len(self.contents)
+
         while True:
             ret, declaration_start_index, right_brace_index = self.extract(search_start)
+
             if ret is None:
+                last = self.contents[search_start:content_end]
+                self.unmodified.append((last,search_start))
                 return
+
             self.all.append((ret, declaration_start_index))
             if search_start != declaration_start_index:
                 non_function = self.contents[search_start:declaration_start_index]

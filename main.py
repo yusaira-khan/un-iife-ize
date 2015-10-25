@@ -31,19 +31,14 @@ def merge_parts(functions, vars, unmodified):
 
 def handle_contents(contents):
     function_extractor = function.Function(contents)
-    function_extractor.extract_from_contents()
-    print('c',contents)
+    function_extractor.extract_all()
     all_functions = function_extractor.all
-    print('f',all_functions)
     non_functions = function_extractor.unmodified
-    print('n',non_functions)
     var_extractor = var.Var(non_functions)
     var_extractor.extract_all()
 
     all_vars = var_extractor.all
-    print('v',all_vars)
     not_modified = var_extractor.unmodified
-    print('u',not_modified)
     parts = merge_parts(all_functions, all_vars, not_modified)
     parts = [string for string, index in parts]
     return ''.join(parts)

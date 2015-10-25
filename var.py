@@ -9,16 +9,20 @@ class Var():
 
     def extract_all(self):
         for content, section_start in self.contents_list:
+            content_end = len(content)
             search_start = 0
             while True:
                 ret, declaration_index, semi_colon_index = self.extract(content, search_start)
                 if ret is None:
+                    non_var= content[search_start:content_end]
+                    self.unmodified.append((non_var, section_start + search_start))
                     break
 
                 self.all.append((ret, declaration_index + section_start))
 
                 if search_start != declaration_index:
-                    self.unmodified.append((content[search_start:declaration_index], section_start + search_start))
+                    non_var= content[search_start:declaration_index]
+                    self.unmodified.append((non_var, section_start + search_start))
                 search_start = semi_colon_index + 1
 
     def extract(self, contents, start=0):
