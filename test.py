@@ -17,3 +17,5 @@ class full(unittest.TestCase):
         test+='world=function(){};'
         test+='\nbye=undefined,nope=undefined;'
         self.assertEqual(stuff,test)
+if __name__ == '__main__':
+    unittest.main()
