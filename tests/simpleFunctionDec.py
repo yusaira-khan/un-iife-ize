@@ -3,11 +3,6 @@ __author__ = 'yusaira-khan'
 import unittest
 import function
 
-
-def boilerplate():
-    pass
-
-
 class FunctionSimple(unittest.TestCase):
 
     def test_full(self):
