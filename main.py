@@ -8,6 +8,15 @@ import re
 # TODO: surround in class
 
 func_det_pat = re.compile(r"function\s+([\w$]+)?(\(.*\))\s*\{")
+class Stack():
+    def __init__(self,num=0):
+        self.count = num
+
+    def push(self,num=1):
+        self.count+=num
+
+    def pop(self,num=1):
+        self.count-=num
 
 
 def get_file_contents(path):
@@ -38,39 +47,16 @@ def get_matched_braces_end(content, start, start_tok=None, end_tok=None):
     content: entire file
     start: index of { + 1
     """
-    expected_rb_count = 1
     r_b_index = -1
-    while expected_rb_count > 0:
+    bracesStack =Stack(1)
+    while bracesStack.count > 0:
         r_b_index = content.find('}', start)
         l_b_count = content.count('{', start, r_b_index)
-        expected_rb_count += l_b_count - 1
+        bracesStack.pop() #} found
+        bracesStack.push(l_b_count) #num { found
         start = r_b_index + 1
 
-    """
-     base case: simple function with no blocks (functions/loops/cconds) inside
-    before loop: count=1, rb=-1
-    in loop: rb at con[rb]==}
-    no more {, so lb = 0,
-
-    rb found so count--
-    start at rb, but not needed
-    loop not repeated
-    """
-
-    """
-    repeated case: many nested or chained blocks
-    before loop: count=1, rb=-1
-    in loop: rb at end of nested blocks
-    check number of { from start to }
-    expected rb count+= number of lb
-    start at rb, to check for more blocks,
-    keep looping till all rb found
-    finally, after all nesting is gone through, rb count= 1(function end })
-
-    when last rb found, count ==0, loop not repeated
-    return index of rb
-    """
-    return r_b_index
+    return r_b_index #last } found
 
 
 def get_fun_info(contents, match, rbrace):
@@ -149,6 +135,7 @@ def is_inside_function(contents, start, end):
         return False
     print("it's inside a function", fun_index, fun_end)
     return True
+
 
 
 def handle_file(contents):
