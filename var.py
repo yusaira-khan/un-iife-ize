@@ -8,19 +8,18 @@ class Var():
         self.all = []
 
     def extract_all(self):
-        for content, start in self.contents_list:
+        for content, section_start in self.contents_list:
             search_start = 0
             while True:
-                ret, s, e = self.extract(content, search_start)
+                ret, declaration_index, semi_colon_index = self.extract(content, search_start)
                 if ret is None:
                     break
 
-                self.all.append((ret, s + start))
+                self.all.append((ret, declaration_index + section_start))
 
-                if search_start != s:
-                    self.unmodified.append((content[search_start:s], start + search_start))
-                search_start = e + 1
-
+                if search_start != declaration_index:
+                    self.unmodified.append((content[search_start:declaration_index], section_start + search_start))
+                search_start = semi_colon_index + 1
 
     def extract(self, contents, start=0):
         # find var

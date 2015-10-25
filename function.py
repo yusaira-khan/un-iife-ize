@@ -25,16 +25,17 @@ class Function():
         self.start = 0
 
     def extract_from_contents(self):
-        start = 0
+        search_start = 0
         while True:
-            ret, det, rb = self.extract(start)
+            ret, declaration_start_index, right_brace_index = self.extract(search_start)
             if ret is None:
                 return
-            self.all.append((ret, det, rb))
-            if start != det:
-                self.unmodified.append((self.contents[start:det], start, det - 1))
+            self.all.append((ret, declaration_start_index))
+            if search_start != declaration_start_index:
+                non_function = self.contents[search_start:declaration_start_index]
+                self.unmodified.append((non_function, search_start))
 
-            start = rb + 1
+            search_start = right_brace_index + 1
 
     def detect_declaration(self, start=0):
         match = detection_pattern.search(self.contents, start)
