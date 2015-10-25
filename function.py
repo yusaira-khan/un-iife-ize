@@ -18,11 +18,27 @@ func_det_pat = re.compile(r"function\s+([\w$]+)?(\(.*\))\s*\{")
 
 
 class Function():
-    def __init__(self, contents='', unmodified=[]):
+    def __init__(self, contents='', unmodified=None):
         self.contents = contents
-        self.unmodified = unmodified
+        if not unmodified:
+            self.unmodified = []
+        else:
+            self.unmodified = unmodified
         self.all = []
         self.start = 0
+
+    def extract_from_contents(self):
+        start = 0
+        while True:
+            ret, det, rb = self.extract(start)
+            if ret is None:
+                return
+            self.all.append((ret, det, rb))
+            if start != det:
+                self.unmodified.append((self.contents[start:det],start,det-1))
+
+            start = rb + 1
+
 
     def detect_declaration(self, start=0):
 
@@ -56,7 +72,6 @@ class Function():
 
         return r_b_index  # last } found
 
-
     def get_info(self, match, rbrace):
         ret = {
             'name': match.group(1),
@@ -69,8 +84,7 @@ class Function():
         ret['body'] = self.contents[ret['lbrace_index']:ret['rbrace_index'] + 1]
         return ret
 
-
-    def format(self,info):
+    def format(self, info):
         dec = [
             info['name'],
             '=function',
@@ -79,13 +93,10 @@ class Function():
             ';']
         return ''.join(dec)
 
-
     def extract(self, start=0):
         match, rb = self.detect_declaration(start)
         if match is None:
-            return None
+            return None, None, rb
         info = self.get_info(match, rb)
         ret = self.format(info)
-        return ret
-
-
+        return ret, info['statement_start'], rb
