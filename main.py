@@ -3,6 +3,7 @@ __author__ = 'yusaira-khan'
 import os
 import function
 import var
+import argparse
 
 
 # TODO:handle non declarations
@@ -42,3 +43,10 @@ def handle_contents(contents):
     parts = merge_parts(all_functions, all_vars, not_modified)
     parts = [string for string, index in parts]
     return ''.join(parts)
+
+if __name__=='__main__':
+    p=argparse.ArgumentParser()
+    p.add_argument('read_path')
+    p.add_argument('write_path')
+    args = p.parse_args()
+    handle_file(args.read_path, args.write_path)
