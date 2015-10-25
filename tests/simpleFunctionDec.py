@@ -1,7 +1,7 @@
 __author__ = 'yusaira-khan'
 
 import unittest
-import un_iife_ize
+import un_iife_ize.un_iife_ize as un_iife_ize
 
 class FunctionSimple(unittest.TestCase):
 
