@@ -14,16 +14,13 @@ class Stack():
         self.count -= num
 
 
-func_det_pat = re.compile(r"function\s+([\w$]+)?(\(.*\))\s*\{")
+detection_pattern = re.compile(r"function\s+([\w$]+)?(\(.*\))\s*\{")
 
 
 class Function():
-    def __init__(self, contents='', unmodified=None):
+    def __init__(self, contents=''):
         self.contents = contents
-        if not unmodified:
-            self.unmodified = []
-        else:
-            self.unmodified = unmodified
+        self.unmodified = []
         self.all = []
         self.start = 0
 
@@ -35,14 +32,12 @@ class Function():
                 return
             self.all.append((ret, det, rb))
             if start != det:
-                self.unmodified.append((self.contents[start:det],start,det-1))
+                self.unmodified.append((self.contents[start:det], start, det - 1))
 
             start = rb + 1
 
-
     def detect_declaration(self, start=0):
-
-        match = func_det_pat.search(self.contents, start)
+        match = detection_pattern.search(self.contents, start)
         if match is None:
             return None, start
         l_brance_after = match.end()
@@ -56,10 +51,7 @@ class Function():
         return match, r_brace_index
 
     def get_matched_braces_end(self, start):
-        """
-        content: entire file
-        start: index of { + 1
-        """
+        """start: index of { + 1"""
         content = self.contents
         r_b_index = -1
         bracesStack = Stack(1)
