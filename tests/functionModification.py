@@ -1,13 +1,13 @@
 __author__ = 'yusaira-khan'
 
 import unittest
-import function
+import main
 
 class functionModification(unittest.TestCase):
 
     def test_sections(self):
         statement = 'function hello(){}\nhello();\nfunction world(){}'
-        f = function.Function(statement)
+        f = main.Function(statement)
 
         exp = 'hello=function(){};world=function(){};'
         f.extract_all()
@@ -17,7 +17,7 @@ class functionModification(unittest.TestCase):
 
     def test_anonymous_modified(self):
         statement = 'function hello(callback){\ncallback()\n}\nhello(function(){});\nfunction world(){}'
-        f = function.Function(statement)
+        f = main.Function(statement)
 
         exp = ['hello=function(callback){\ncallback()\n};','world=function(){};']
         f.extract_all()
@@ -28,7 +28,7 @@ class functionModification(unittest.TestCase):
 
     def test_anonymous_unmodified(self):
         statement = 'function hello(callback){\ncallback()\n}\nhello(function(){});\nfunction world(){}'
-        f = function.Function(statement)
+        f = main.Function(statement)
 
         exp = ['\nhello(function(){});\n']
         f.extract_all()

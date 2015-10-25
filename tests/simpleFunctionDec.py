@@ -1,21 +1,21 @@
 __author__ = 'yusaira-khan'
 
 import unittest
-import function
+import main
 
 class FunctionSimple(unittest.TestCase):
 
     def test_full(self):
         statement = 'function hello(){}'
 
-        f = function.Function(statement)
+        f = main.Function(statement)
         exp = 'hello=function(){};'
         ret=f.extract()
         self.assertEqual(exp,ret)
 
     def test_untouched(self):
         statement = 'function (){}'
-        f = function.Function(statement)
+        f = main.Function(statement)
         exp = None
         ret=f.extract()
         self.assertEqual(exp,ret)
@@ -51,7 +51,7 @@ class FunctionSimple(unittest.TestCase):
         'body':'{}'
         }
 
-        f= function.Function(statement)
+        f= main.Function(statement)
         match,rb = f.detect_declaration(0)
         info = f.get_info(match,rb)
         self.assertEqual(info,exp)
