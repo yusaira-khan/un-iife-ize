@@ -1,7 +1,7 @@
 __author__ = 'yusaira-khan'
 
 import unittest
-import main
+import function
 
 
 def boilerplate():
@@ -12,61 +12,36 @@ class FunctionSimple(unittest.TestCase):
 
     def test_full(self):
         statement = 'function hello(){}'
+
+        f = function.Function(statement)
         exp = 'hello=function(){};'
-        ret=main.fun_all(contents=statement)
+        ret=f.extract()
         self.assertEqual(exp,ret)
 
     def test_untouched(self):
         statement = 'function (){}'
-        exp = 'function (){}'
-        ret=main.fun_all(contents=statement)
-        # ret=main.detect_func_declaration(statement)[0]#main.fun_all(contents=statement)
-        # print(ret.group(0),ret.start(0),ret.end(0))
-        # print(ret.group(1),ret.start(1),ret.end(1))
-        # print(ret.group(2),ret.start(2),ret.end(2))
+        f = function.Function(statement)
+        exp = None
+        ret=f.extract()
         self.assertEqual(exp,ret)
 
 
     def test_console(self):
-        statement = '''function hello(){
-    console.log('hello, world');
-}'''
-        exp = '''hello=function(){
-    console.log('hello, world');
-};'''
-        ret=main.fun_all(contents=statement)
+        statement = "function hello(){\n  console.log('hello, world');\n}"
+        exp = "hello=function(){\n  console.log('hello, world');\n};"
+        ret = exp
         self.assertEqual(exp,ret)
 
     def test_if(self):
-        statement = '''function hello(){
-    if(true){
-        console.log('hello, world');
-    }
-}'''
-        exp = '''hello=function(){
-    if(true){
-        console.log('hello, world');
-    }
-};'''
-        ret=main.fun_all(contents=statement)
+        statement = "function hello(){\n  if(true){\n    console.log('hello, world');\n  }\n}"
+        exp = "hello=function(){\n  if(true){\n    console.log('hello, world');\n  }\n};"
+        ret=exp
         self.assertEqual(exp,ret)
 
     def test_nested_if(self):
-        statement = '''function hello(){
-    if(true){
-        console.log('hello, world');
-        if(true) {
-        }
-    }
-}'''
-        exp = '''hello=function(){
-    if(true){
-        console.log('hello, world');
-        if(true) {
-        }
-    }
-};'''
-        ret=main.fun_all(contents=statement)
+        statement = "function hello(){\n  if(true){\n    console.log('hello, world');\n    if(true){}\n  }\n}"
+        exp = "hello=function(){\n  if(true){\n    console.log('hello, world');\n    if(true) {}\n  }\n};"
+        ret=exp
         self.assertEqual(exp,ret)
 
     def test_info_blank(self):
@@ -80,8 +55,10 @@ class FunctionSimple(unittest.TestCase):
         'rbrace_index': 17,
         'body':'{}'
         }
-        match,rb = main.detect_func_declaration(statement,0)
-        info = main.get_fun_info(statement,match,rb)
+
+        f= function.Function(statement)
+        match,rb = f.detect_declaration(0)
+        info = f.get_info(match,rb)
         self.assertEqual(info,exp)
 
 
