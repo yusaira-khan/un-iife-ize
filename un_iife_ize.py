@@ -2,7 +2,8 @@ __author__ = 'yusaira-khan'
 
 import re
 import argparse
-
+import signal
+import sys
 
 class Stack():
     def __init__(self, num=0):
@@ -189,6 +190,13 @@ def handle_contents(contents):
     parts = [string for string, index in parts]
     return ''.join(parts)
 
+def signal_handler(signal, frame):
+        print('Exiting!')
+        sys.exit(1)
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGHUP, signal_handler)
+
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
@@ -196,3 +204,4 @@ if __name__ == '__main__':
     p.add_argument('write_path')
     args = p.parse_args()
     handle_file(args.read_path, args.write_path)
+    print('Press Ctrl+C to exit')
