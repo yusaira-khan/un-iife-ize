@@ -1,7 +1,7 @@
 __author__ = 'yusaira-khan'
 
 import unittest
-import main
+import un_iife_ize
 
 
 class full(unittest.TestCase):
@@ -11,7 +11,7 @@ class full(unittest.TestCase):
         file += '\nfunction world(){}'
         file += '\nvar bye,nope;'
 
-        stuff = main.handle_contents(file)
+        stuff = un_iife_ize.handle_contents(file)
         test='hello=function(callback){\ncallback()\n};'
         test+='\nhello(function(){});\n'
         test+='world=function(){};'

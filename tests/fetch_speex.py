@@ -1,7 +1,7 @@
 __author__ = 'yusaira-khan'
 import requests
 import os
-import main
+import un_iife_ize
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 proj_dir = os.path.dirname(current_dir)
@@ -30,6 +30,6 @@ def get_file():
 def make_mod():
     rpath = os.path.join(proj_dir, 'speex/speex.min.js')
     wpath = os.path.join(proj_dir, 'speex/speex-meteor.min.js')
-    main.handle_file(rpath, wpath)
+    un_iife_ize.handle_file(rpath, wpath)
 
 make_mod()

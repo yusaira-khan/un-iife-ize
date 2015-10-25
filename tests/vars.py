@@ -1,14 +1,14 @@
 __author__ = 'yusaira-khan'
 
 import unittest
-import main
+import un_iife_ize
 
 
 class CheckVar(unittest.TestCase):
     def test_simple(self):
         statement = [('var hello,world=5;', 0)]
         exp = [('hello=undefined,world=5;', 0)]
-        v = main.Var(statement)
+        v = un_iife_ize.Var(statement)
         v.extract_all()
         ret = v.all
         self.assertEqual(ret, exp)
@@ -16,7 +16,7 @@ class CheckVar(unittest.TestCase):
     def test_multiple(self):
         statement = [('var hello,world=5;\nvar bye,nope;', 0)]
         exp = [('hello=undefined,world=5;', 0), ('bye=undefined,nope=undefined;', 19)]
-        v = main.Var(statement)
+        v = un_iife_ize.Var(statement)
         v.extract_all()
         print(v.unmodified)
         ret = v.all
@@ -29,7 +29,7 @@ class CheckVar(unittest.TestCase):
                ('bye=undefined,nope=undefined;', 19),
                ('hello=undefined,world=5;', 30),
                ('bye=undefined,nope=undefined;', 49) ]
-        v = main.Var(statement)
+        v = un_iife_ize.Var(statement)
         v.extract_all()
         ret = v.all
         self.assertEqual(ret, exp)
@@ -39,7 +39,7 @@ class CheckVar(unittest.TestCase):
                      ('var hello,world=5;\nvar bye,nope;', 30)]
         exp = [('\nfunction(){}\n', 18),
                ('\n', 48), ]
-        v = main.Var(statement)
+        v = un_iife_ize.Var(statement)
         v.extract_all()
         ret = v.unmodified
         self.assertEqual(ret, exp)
