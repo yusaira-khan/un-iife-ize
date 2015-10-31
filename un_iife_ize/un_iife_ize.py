@@ -4,6 +4,8 @@ import re
 import argparse
 import signal
 import sys
+import os
+
 
 class Stack():
     def __init__(self, num=0):
@@ -16,13 +18,31 @@ class Stack():
         self.count -= num
 
 
+fun = "FUN"
+nonfun = "OUT"
+var = "VAR"
+unmodified = "UNMOD"
+
+
 class Function():
-    def __init__(self, contents=''):
+    def __init__(self, contents='', temp='.__temp'):
         self.contents = contents
         self.unmodified = []
         self.all = []
+        self.dir = temp
 
     detection_pattern = re.compile(r"function\s+([\w$]+)?(\(.*\))\s*\{")
+
+    def write(self, content, type, index):
+        if self.dir is None:
+            if type is fun:
+                self.all.append((content, index))
+            else:
+                self.unmodified.append((content, index))
+            return
+        fname = os.path.join(self.dir, str(index) + type)
+        with open(fname, "w+") as tfile:
+            tfile.write(content)
 
     def extract_all(self):
         search_start = 0
@@ -33,13 +53,13 @@ class Function():
 
             if ret is None:
                 last = self.contents[search_start:content_end]
-                self.unmodified.append((last, search_start))
+                self.write(last, nonfun, search_start)
                 return
 
-            self.all.append((ret, declaration_start_index))
+            self.write(ret, fun, declaration_start_index)
             if search_start != declaration_start_index:
                 non_function = self.contents[search_start:declaration_start_index]
-                self.unmodified.append((non_function, search_start))
+                self.write(non_function, nonfun, declaration_start_index)
 
             search_start = right_brace_index + 1
 
@@ -153,17 +173,29 @@ class Var():
 # TODO: check if for/var/function are words inside a string
 
 
-def handle_file(rpath, wpath=None):
+def handle_file(rpath, wpath=None, temp=None):
     rfile = open(rpath, "r")
     contents = rfile.read()
     rfile.close()
-    stuff = handle_contents(contents)
+    stuff = handle_contents(contents, temp)
 
     if wpath is None:
         wpath = rpath + '__no__iife'
     wfile = open(wpath, "w+")
-    wfile.write(stuff)
+    if stuff is not None:
+        wfile.write(stuff)
     wfile.close()
+
+
+def make_temp_directory(temp, wpath):
+    if temp is None:
+        temp = os.path.dirname(wpath)
+        temp = os.path.join(temp, '.__temp__')
+        try:
+            os.mkdir(temp)
+        except:
+            pass
+    return temp
 
 
 def merge_parts(functions, vars, unmodified):
@@ -173,35 +205,39 @@ def merge_parts(functions, vars, unmodified):
     return all_parts
 
 
-def handle_contents(contents):
-    function_extractor = Function(contents)
+def handle_contents(contents, temp):
+    function_extractor = Function(contents, temp)
     function_extractor.extract_all()
 
     all_functions = function_extractor.all
     non_functions = function_extractor.unmodified
 
-    var_extractor = Var(non_functions)
-    var_extractor.extract_all()
+    # var_extractor = Var(non_functions)
+    # var_extractor.extract_all()
+    #
+    # all_vars = var_extractor.all
+    # not_modified = var_extractor.unmodified
 
-    all_vars = var_extractor.all
-    not_modified = var_extractor.unmodified
+    #parts = merge_parts(all_functions, all_vars, not_modified)
+    #parts = [string for string, index in parts]
+    #return ''.join(parts)
 
-    parts = merge_parts(all_functions, all_vars, not_modified)
-    parts = [string for string, index in parts]
-    return ''.join(parts)
 
 def signal_handler(signal, frame):
-        print('Exiting!')
-        sys.exit(1)
+    print('Exiting!')
+    sys.exit(1)
+
+
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGHUP, signal_handler)
-
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('read_path')
     p.add_argument('write_path')
+    p.add_argument('--temp', help="temporary directory path", type=str, default=None)
     args = p.parse_args()
-    handle_file(args.read_path, args.write_path)
+    temp = make_temp_directory(args.temp, args.write_path)
+    handle_file(args.read_path, args.write_path, temp=None)
     print('Press Ctrl+C to exit')
