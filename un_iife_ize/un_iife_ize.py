@@ -31,7 +31,7 @@ class Function():
         self.all = []
         self.dir = h
 
-    detection_pattern = re.compile(r"function\s+([\w$]+)?(\(.*\))\s*\{")
+    detection_pattern = re.compile(r"function\s+([\w$]+)?(\(.*?\))\s*\{")
 
     def write(self, content, type, index):
         if self.dir is None:
