@@ -18,18 +18,18 @@ class Stack():
         self.count -= num
 
 
-fun = "FUN"
-nonfun = "OUT"
-var = "VAR"
-unmodified = "UNMOD"
+fun = "_FUN"
+nonfun = "_OUT"
+var = "_VAR"
+unmodified = "_UNMOD"
 
 
 class Function():
-    def __init__(self, contents='', temp='.__temp'):
+    def __init__(self, contents='', h='.__temp__'):
         self.contents = contents
         self.unmodified = []
         self.all = []
-        self.dir = temp
+        self.dir = h
 
     detection_pattern = re.compile(r"function\s+([\w$]+)?(\(.*\))\s*\{")
 
@@ -59,7 +59,7 @@ class Function():
             self.write(ret, fun, declaration_start_index)
             if search_start != declaration_start_index:
                 non_function = self.contents[search_start:declaration_start_index]
-                self.write(non_function, nonfun, declaration_start_index)
+                self.write(non_function, nonfun, search_start)
 
             search_start = right_brace_index + 1
 
@@ -122,7 +122,7 @@ class Function():
 
 
 class Var():
-    def __init__(self, contents_list):
+    def __init__(self, contents_list,temp):
         self.contents_list = contents_list
         self.unmodified = []
         self.all = []
@@ -188,14 +188,20 @@ def handle_file(rpath, wpath=None, temp=None):
 
 
 def make_temp_directory(temp, wpath):
+    t='.__temp__'
     if temp is None:
         temp = os.path.dirname(wpath)
-        temp = os.path.join(temp, '.__temp__')
+        t = os.path.join(temp, '.__temp__')
         try:
-            os.mkdir(temp)
-        except:
-            pass
-    return temp
+            os.mkdir(t)
+        except OSError as e:
+            print(e.strerror)
+            os.rmdir(t)
+            make_temp_directory(t,wpath)
+
+
+    else : t = temp
+    return t
 
 
 def merge_parts(functions, vars, unmodified):
@@ -238,6 +244,6 @@ if __name__ == '__main__':
     p.add_argument('write_path')
     p.add_argument('--temp', help="temporary directory path", type=str, default=None)
     args = p.parse_args()
-    temp = make_temp_directory(args.temp, args.write_path)
-    handle_file(args.read_path, args.write_path, temp=None)
+    t = make_temp_directory(args.temp, args.write_path)
+    handle_file(args.read_path, args.write_path, t)
     print('Press Ctrl+C to exit')
