@@ -18,10 +18,10 @@ class Stack():
         self.count -= num
 
 
-fun = "_FUN"
-nonfun = "_OUT"
-var = "_VAR"
-unmodified = "_UNMOD"
+fun = "-FUN"
+nonfun = "-OUT"
+var = "-VAR"
+unmodified = "-UNMOD"
 
 
 class Function():
@@ -30,8 +30,10 @@ class Function():
         self.unmodified = []
         self.all = []
         self.dir = h
+        self.files = []
 
     detection_pattern = re.compile(r"function\s+([\w$]+)?(\(.*?\))\s*\{")
+    anonymous_pattern = re.compile(r"function\s*(\(.*?\))\s*\{")
 
     def write(self, content, type, index):
         if self.dir is None:
@@ -43,6 +45,7 @@ class Function():
         fname = os.path.join(self.dir, str(index) + type)
         with open(fname, "w+") as tfile:
             tfile.write(content)
+        self.files.append(fname)
 
     def extract_all(self):
         search_start = 0
@@ -122,27 +125,48 @@ class Function():
 
 
 class Var():
-    def __init__(self, contents_list,temp):
+    def __init__(self, contents_list, temp):
         self.contents_list = contents_list
         self.unmodified = []
         self.all = []
+        self.dir = temp
+        self.files = []
+
+    def write(self, content, type, index):
+        if self.dir is None:
+            if type is fun:
+                self.all.append((content, index))
+            else:
+                self.unmodified.append((content, index))
+            return
+        fname = os.path.join(self.dir, str(index) + type)
+        with open(fname, "w+") as tfile:
+            tfile.write(content)
+        self.files.append(fname)
 
     def extract_all(self):
-        for content, section_start in self.contents_list:
+        for stuff in self.contents_list:
+            if self.dir:
+                with open(stuff) as rtfile:
+                    content = rtfile.read()
+                section_start = int(os.path.basename(stuff).split(nonfun)[-2])
+            else:
+                content = stuff[0]
+                section_start = stuff[1]
             content_end = len(content)
             search_start = 0
             while True:
                 ret, declaration_index, semi_colon_index = self.extract(content, search_start)
                 if ret is None:
                     non_var = content[search_start:content_end]
-                    self.unmodified.append((non_var, section_start + search_start))
+                    self.write(non_var, unmodified,section_start + search_start)
                     break
 
-                self.all.append((ret, declaration_index + section_start))
+                self.write(ret, var,declaration_index + section_start)
 
                 if search_start != declaration_index:
                     non_var = content[search_start:declaration_index]
-                    self.unmodified.append((non_var, section_start + search_start))
+                    self.write(non_var, unmodified, section_start + search_start)
                 search_start = semi_colon_index + 1
 
     def extract(self, contents, start=0):
@@ -151,6 +175,7 @@ class Var():
         if var_index == -1:
             return None, -1, -1
         end_var = contents.find(';', var_index)
+
         return self.format(contents, var_index, end_var), var_index, end_var
 
     def format(self, contents, var_index, end_var):
@@ -166,7 +191,8 @@ class Var():
             # do nothing
             decs[i] = d.strip() + '=undefined'
         ret = ','.join(decs)
-        ret += ';'
+        if end_var != -1:
+            ret += ';'
         return ret
 
 
@@ -188,7 +214,7 @@ def handle_file(rpath, wpath=None, temp=None):
 
 
 def make_temp_directory(temp, wpath):
-    t='.__temp__'
+    t = '.__temp__'
     if temp is None:
         temp = os.path.dirname(wpath)
         t = os.path.join(temp, '.__temp__')
@@ -197,10 +223,11 @@ def make_temp_directory(temp, wpath):
         except OSError as e:
             print(e.strerror)
             os.rmdir(t)
-            make_temp_directory(t,wpath)
+            make_temp_directory(t, wpath)
 
 
-    else : t = temp
+    else:
+        t = temp
     return t
 
 
@@ -211,22 +238,47 @@ def merge_parts(functions, vars, unmodified):
     return all_parts
 
 
-def handle_contents(contents, temp):
-    function_extractor = Function(contents, temp)
+def merge_on_stack(contents):
+    function_extractor = Function(contents)
     function_extractor.extract_all()
 
     all_functions = function_extractor.all
     non_functions = function_extractor.unmodified
 
-    # var_extractor = Var(non_functions)
-    # var_extractor.extract_all()
+    var_extractor = Var(non_functions, None)
+    var_extractor.extract_all()
+
+    all_vars = var_extractor.all
+    not_modified = var_extractor.unmodified
+
+    parts = merge_parts(all_functions, all_vars, not_modified)
+    parts = [string for string, index in parts]
+    return ''.join(parts)
+
+
+def merge_files():
+    pass
+
+
+def handle_contents(contents, temp):
+    function_extractor = Function(contents, temp)
+    function_extractor.extract_all()
+
+    if not temp:
+        return merge_on_stack(contents)
+
+    all_functions = filter(lambda x: x.endswith(fun), function_extractor.files)
+    non_functions = filter(lambda x: x.endswith(nonfun), function_extractor.files)
+
+    var_extractor = Var(non_functions, temp)
+    var_extractor.extract_all()
     #
     # all_vars = var_extractor.all
     # not_modified = var_extractor.unmodified
 
-    #parts = merge_parts(all_functions, all_vars, not_modified)
-    #parts = [string for string, index in parts]
-    #return ''.join(parts)
+    # parts = merge_parts(all_functions, all_vars, not_modified)
+    # parts = [string for string, index in parts]
+    # return ''.join(parts)
 
 
 def signal_handler(signal, frame):
