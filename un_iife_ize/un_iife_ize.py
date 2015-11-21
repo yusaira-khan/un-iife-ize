@@ -24,7 +24,39 @@ var = "-VAR"
 unmodified = "-UNMOD"
 
 
-class Function():
+
+class Extractor():
+    all_function_pattern = re.compile(r"function(\s*|\s+([\w$]+)?)(\(.*?\))\s*\{")
+    anonymous_pattern = re.compile(r"function\s*(\(.*?\))\s*\{")
+    ignore_pattern=anonymous_pattern
+
+    def is_inside_function(self, search_start, declaration_start, content):
+        test=self.ignore_pattern.search(content, pos=search_start,endpos=declaration_start)
+        if test is not None:
+            end=self.get_matched_braces_end(test.end(),content)
+            if end<declaration_start:
+                return False
+            return (test,end) #return the entire object to see what's inside
+        else:
+            return False
+
+
+    def get_matched_braces_end(self, start,content,starttoken='{',endtoken='}'):
+        """start: index of { + 1"""
+        # content = self.contents
+        r_b_index = -1
+        bracesStack = Stack(1)
+        while bracesStack.count > 0:
+            r_b_index = content.find(endtoken, start)
+            l_b_count = content.count(starttoken, start, r_b_index)
+            bracesStack.pop()  # } found
+            bracesStack.push(l_b_count)  # num { found
+            start = r_b_index + 1
+
+        return r_b_index  # last } found
+
+
+class Function(Extractor):
     def __init__(self, contents='', h='.__temp__'):
         self.contents = contents
         self.unmodified = []
@@ -33,7 +65,7 @@ class Function():
         self.files = []
 
     detection_pattern = re.compile(r"function\s+([\w$]+)?(\(.*?\))\s*\{")
-    anonymous_pattern = re.compile(r"function\s*(\(.*?\))\s*\{")
+
 
     def write(self, content, type, index):
         if self.dir is None:
@@ -71,28 +103,19 @@ class Function():
         if match is None:
             return None, start
         l_brance_after = match.end()
-        r_brace_index = self.get_matched_braces_end(l_brance_after)
+        r_brace_index = self.get_matched_braces_end(l_brance_after,self.contents)
         if match.group(1) is None:
             return None, r_brace_index
-        #
-        # if is_inside_function(contents, match.start(), r_brace_index):
-        #     return None,r_brace_index
-        # TODO: probably don't need to check since top level functions will be skipped over
+
+        inside_check= self.is_inside_function(start, match.start(),self.contents)
+        if inside_check:
+            outside_end=inside_check[1]
+            return self.detect_declaration(outside_end)
+
+
         return match, r_brace_index
 
-    def get_matched_braces_end(self, start):
-        """start: index of { + 1"""
-        content = self.contents
-        r_b_index = -1
-        bracesStack = Stack(1)
-        while bracesStack.count > 0:
-            r_b_index = content.find('}', start)
-            l_b_count = content.count('{', start, r_b_index)
-            bracesStack.pop()  # } found
-            bracesStack.push(l_b_count)  # num { found
-            start = r_b_index + 1
 
-        return r_b_index  # last } found
 
     def get_info(self, match, rbrace):
         ret = {
@@ -124,8 +147,10 @@ class Function():
         return ret, info['statement_start'], rb
 
 
-class Var():
+class Var(Extractor):
+
     def __init__(self, contents_list, temp):
+
         self.contents_list = contents_list
         self.unmodified = []
         self.all = []
