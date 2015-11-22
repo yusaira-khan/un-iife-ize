@@ -26,7 +26,7 @@ unmodified = "-UNMOD"
 
 
 class Extractor():
-    all_function_pattern = re.compile(r"function(\s*|\s+([\w$]+)?)(\(.*?\))\s*\{")
+    all_function_pattern = re.compile(r"\s*function(\s*|\s+([\w$]+)?)(\(.*?\))\s*\{")
     anonymous_pattern = re.compile(r"function\s*(\(.*?\))\s*\{")
     ignore_pattern=anonymous_pattern
 
@@ -194,12 +194,37 @@ class Var(Extractor):
                     self.write(non_var, unmodified, section_start + search_start)
                 search_start = semi_colon_index + 1
 
+    iife_pattern=re.compile(r"\s*([\w$]+)?\s*=\s*function(\s*|\s+([\w$]+)?)(\(.*?\))\s*\{")
+    iife_brace=re.compile(r"\s*([\w$]+)?=\s*\(")
     def extract(self, contents, start=0):
         # find var
         var_index = contents.find('var ', start)
         if var_index == -1:
             return None, -1, -1
+
         end_var = contents.find(';', var_index)
+        after_dec = var_index+len('var ')
+        check_inside_function = self.is_inside_function(start,var_index,contents)
+
+        if check_inside_function:
+            return self.extract(contents,check_inside_function[1])
+        iife_output = self.iife_pattern.match(contents,after_dec)
+
+        if iife_output:
+            end_var=self.get_matched_braces_end(iife_output.end(),contents)
+            print("iife found!",iife_output.group())
+            return iife_output.group(),var_index,end_var
+
+        iife_output = self.iife_brace.match(contents,after_dec)
+
+        if iife_output:
+            end_var=self.get_matched_braces_end(iife_output.end(),contents,starttoken='(',endtoken=')')
+            print("iife found!",iife_output.group())
+            return iife_output.group(),var_index,end_var
+
+
+
+
 
         return self.format(contents, var_index, end_var), var_index, end_var
 
