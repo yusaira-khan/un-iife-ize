@@ -65,7 +65,14 @@ class CheckVar(unittest.TestCase):
         print(ret)
         self.assertEqual(ret, exp)
 
+    def test_inside_function(self):
+        statement = [('function(a){var hello=5;}', 30)]
+        v = un_iife_ize.Var(statement)
+        v.extract_all()
 
+        ret = v.unmodified
+        print("woadh",ret,v.unmodified)
+        self.assertEqual(ret, statement)
 
 
 

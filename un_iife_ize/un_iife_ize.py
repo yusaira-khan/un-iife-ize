@@ -178,6 +178,7 @@ class Var(Extractor):
             else:
                 content = stuff[0]
                 section_start = stuff[1]
+            self.section_start =section_start
             content_end = len(content)
             search_start = 0
             while True:
@@ -197,6 +198,8 @@ class Var(Extractor):
     iife_pattern=re.compile(r"\s*([\w$]+)?\s*=\s*function(\s*|\s+([\w$]+)?)(\(.*?\))\s*\{")
     iife_brace=re.compile(r"\s*([\w$]+)?\s*=\s*\(")
     double_assignment=re.compile(r"\s*([\w$]+)?\s*=\s*([\w$]+)?=\s*")
+    prev=-1
+    count=0
     def extract(self, contents, start=0):
         # find var
         var_index = contents.find('var ', start)
@@ -204,6 +207,9 @@ class Var(Extractor):
             return None, -1, -1
 
         end_var = contents.find(';', var_index)
+        # print(var_index,"woot",self.section_start,"root",contents,"toot",end_var)
+
+
         after_dec = var_index+len('var ')
         check_inside_function = self.is_inside_function(start,var_index,contents)
 
@@ -228,13 +234,17 @@ class Var(Extractor):
             end_var=dub_assignment.end()
             return contents[dub_assignment.start():end_var],var_index,end_var-1
 
+        dontaddsemicolon=False
+        if end_var==-1:
+            end_var=len(contents)
+        dontaddsemicolon=True
 
 
 
 
-        return self.format(contents, var_index, end_var), var_index, end_var
+        return self.format(contents, var_index, end_var,dontaddsemicolon), var_index, end_var
 
-    def format(self, contents, var_index, end_var):
+    def format(self, contents, var_index, end_var,dontaddsemicolon):
         statement = contents[var_index:end_var]
         # removing var
         decs = statement[3:].split(',')
@@ -259,14 +269,14 @@ def handle_file(rpath, wpath=None, temp=None):
     rfile = open(rpath, "r")
     contents = rfile.read()
     rfile.close()
-    stuff = handle_contents(contents, temp)
+    stuff = handle_contents(contents, temp,wpath)
 
     if wpath is None:
         wpath = rpath + '__no__iife'
-    wfile = open(wpath, "w+")
-    if stuff is not None:
-        wfile.write(stuff)
-    wfile.close()
+    # wfile = open(wpath, "w+")
+    # if stuff is not None:
+    #     wfile.write(stuff)
+    # wfile.close()
 
 
 def make_temp_directory(temp, wpath):
@@ -311,23 +321,37 @@ def merge_on_stack(contents):
     parts = [string for string, index in parts]
     return ''.join(parts)
 
+def sort_files(all_files):
+    unsortedfilenames= [(int(name.split('/')[-1].split('-')[0]),name) for name in all_files]
+    unsortedfilenames.sort()
+    for i in unsortedfilenames:
+        print(i)
+    return [ name for index,name in unsortedfilenames]
 
-def merge_files():
-    pass
+
+def merge_files(files,writepath):
+    with open(writepath,"w+") as wfile:
+        for name in files:
+            with open(name,'r') as part:
+                wfile.write(part.read())
 
 
-def handle_contents(contents, temp):
+def handle_contents(contents, temp,writepath):
     function_extractor = Function(contents, temp)
     function_extractor.extract_all()
 
     if not temp:
         return merge_on_stack(contents)
 
-    all_functions = filter(lambda x: x.endswith(fun), function_extractor.files)
+    all_functions = [x for x in  function_extractor.files if x.endswith(fun)]
     non_functions = filter(lambda x: x.endswith(nonfun), function_extractor.files)
 
     var_extractor = Var(non_functions, temp)
     var_extractor.extract_all()
+    all_vars = [x for x in  var_extractor.files if x.endswith(var)]# filter(lambda x: x.endswith(var), var_extractor.files)
+    all_unmodified = [x for x in  var_extractor.files if x.endswith(unmodified)] #filter(lambda x: x.endswith(unmodified), var_extractor.files)
+    files=sort_files(all_functions+all_vars+all_unmodified)
+    merge_files(files,writepath)
     #
     # all_vars = var_extractor.all
     # not_modified = var_extractor.unmodified
