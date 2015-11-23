@@ -149,7 +149,7 @@ class Function(Extractor):
 
 class Var(Extractor):
 
-    def __init__(self, contents_list, temp):
+    def __init__(self, contents_list, temp=None):
 
         self.contents_list = contents_list
         self.unmodified = []
@@ -159,7 +159,7 @@ class Var(Extractor):
 
     def write(self, content, type, index):
         if self.dir is None:
-            if type is fun:
+            if type is var:
                 self.all.append((content, index))
             else:
                 self.unmodified.append((content, index))
@@ -195,7 +195,8 @@ class Var(Extractor):
                 search_start = semi_colon_index + 1
 
     iife_pattern=re.compile(r"\s*([\w$]+)?\s*=\s*function(\s*|\s+([\w$]+)?)(\(.*?\))\s*\{")
-    iife_brace=re.compile(r"\s*([\w$]+)?=\s*\(")
+    iife_brace=re.compile(r"\s*([\w$]+)?\s*=\s*\(")
+    double_assignment=re.compile(r"\s*([\w$]+)?\s*=\s*([\w$]+)?=\s*")
     def extract(self, contents, start=0):
         # find var
         var_index = contents.find('var ', start)
@@ -213,14 +214,19 @@ class Var(Extractor):
         if iife_output:
             end_var=self.get_matched_braces_end(iife_output.end(),contents)
             print("iife found!",iife_output.group())
-            return iife_output.group(),var_index,end_var
+            return contents[iife_output.start():end_var+1],var_index,end_var
 
         iife_output = self.iife_brace.match(contents,after_dec)
 
         if iife_output:
             end_var=self.get_matched_braces_end(iife_output.end(),contents,starttoken='(',endtoken=')')
             print("iife found!",iife_output.group())
-            return iife_output.group(),var_index,end_var
+            return contents[iife_output.start():end_var+1],var_index,end_var
+
+        dub_assignment= self.double_assignment.match(contents,after_dec)
+        if dub_assignment:
+            end_var=dub_assignment.end()
+            return contents[dub_assignment.start():end_var],var_index,end_var-1
 
 
 
