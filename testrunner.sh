@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-python python/helpers/pycharm/utrunner.py $1
+python intellij-community/python/helpers/pycharm/utrunner.py $1
