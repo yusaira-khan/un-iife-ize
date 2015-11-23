@@ -4,4 +4,6 @@ python:
   - "3.3"
   - "3.4"
   - "3.5"
-script: python test.py
+
+install: ./testinstaller.sh
+script:  ./testrunner.sh test/*
