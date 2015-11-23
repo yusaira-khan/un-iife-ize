@@ -5,6 +5,7 @@ import argparse
 import signal
 import sys
 import os
+import shutil
 
 
 class Stack():
@@ -280,20 +281,18 @@ def handle_file(rpath, wpath, temp):
 
 
 def make_temp_directory(temp, wpath):
-    t = '.__temp__'
     if temp is None:
         temp = os.path.dirname(wpath)
         t = os.path.join(temp, '.__temp__')
-        try:
-            os.mkdir(t)
-        except OSError as e:
-            print(e.strerror)
-            os.rmdir(t)
-            make_temp_directory(t, wpath)
-
-
     else:
         t = temp
+
+    try:
+        os.mkdir(t)
+    except OSError as e:
+        print(e.strerror)
+        shutil.rmtree(t)
+        os.mkdir(t)
     return t
 
 
@@ -352,6 +351,7 @@ def handle_contents(contents, temp=None,writepath=None):
     all_unmodified = [x for x in  var_extractor.files if x.endswith(unmodified)] #filter(lambda x: x.endswith(unmodified), var_extractor.files)
     files=sort_files(all_functions+all_vars+all_unmodified)
     merge_files(files,writepath)
+    shutil.rmtree(temp)
     #
     # all_vars = var_extractor.all
     # not_modified = var_extractor.unmodified
@@ -376,6 +376,6 @@ if __name__ == '__main__':
     p.add_argument('write_path')
     p.add_argument('--temp', help="temporary directory path", type=str, default=None)
     args = p.parse_args()
-    t = make_temp_directory(args.temp, args.write_path)
-    handle_file(args.read_path, args.write_path, t)
+    temp_directory_path = make_temp_directory(args.temp, args.write_path)
+    handle_file(args.read_path, args.write_path, temp_directory_path)
     print('Press Ctrl+C to exit')
