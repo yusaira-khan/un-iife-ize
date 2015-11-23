@@ -4,7 +4,7 @@ import unittest
 import un_iife_ize.un_iife_ize as main
 
 
-class full(unittest.TestCase):
+class Full(unittest.TestCase):
     def test_all(self):
         file = 'function hello(callback){\ncallback()\n}'
         file += '\nhello(function(){});'

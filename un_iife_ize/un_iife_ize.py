@@ -265,14 +265,14 @@ class Var(Extractor):
 # TODO: check if for/var/function are words inside a string
 
 
-def handle_file(rpath, wpath=None, temp=None):
+def handle_file(rpath, wpath, temp):
     rfile = open(rpath, "r")
     contents = rfile.read()
     rfile.close()
     stuff = handle_contents(contents, temp,wpath)
 
-    if wpath is None:
-        wpath = rpath + '__no__iife'
+    # if wpath is None:
+    #     wpath = rpath + '__no__iife'
     # wfile = open(wpath, "w+")
     # if stuff is not None:
     #     wfile.write(stuff)
@@ -305,7 +305,7 @@ def merge_parts(functions, vars, unmodified):
 
 
 def merge_on_stack(contents):
-    function_extractor = Function(contents)
+    function_extractor = Function(contents,None)
     function_extractor.extract_all()
 
     all_functions = function_extractor.all
@@ -336,7 +336,7 @@ def merge_files(files,writepath):
                 wfile.write(part.read())
 
 
-def handle_contents(contents, temp,writepath):
+def handle_contents(contents, temp=None,writepath=None):
     function_extractor = Function(contents, temp)
     function_extractor.extract_all()
 
