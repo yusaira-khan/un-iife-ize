@@ -5,5 +5,5 @@ python:
   - "3.4"
   - "3.5"
 
-install: ./travis/testinstaller.sh
-script:  ./test/utrunner.sh test/*py
+install: ./tests/installer.sh
+script:  ./tests/utrunner.sh tests/*py
