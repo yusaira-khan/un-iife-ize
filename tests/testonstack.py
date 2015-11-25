@@ -12,10 +12,13 @@ class Full(unittest.TestCase):
         file += '\nvar bye,nope;'
 
         stuff = main.handle_contents(file)
-        test='hello=function(callback){\ncallback()\n};'
-        test+='\nhello(function(){});\n'
-        test+='world=function(){};'
-        test+='\nbye=undefined,nope=undefined;'
-        self.assertEqual(stuff,test)
+        test = 'hello=function(callback){\ncallback()\n};'
+        test += '\nhello(function(){});\n'
+        test += 'world=function(){};'
+        test += '\nbye=undefined,nope=undefined;'
+
+        self.assertEqual(stuff, test)
+
+
 if __name__ == '__main__':
     unittest.main()

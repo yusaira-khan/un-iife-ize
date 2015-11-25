@@ -32,4 +32,5 @@ def make_mod():
     wpath = os.path.join(proj_dir, 'speex/speex-meteor.min.js')
     main.handle_file(rpath, wpath)
 
+
 make_mod()

@@ -29,7 +29,7 @@ class CheckVar(unittest.TestCase):
         exp = [('hello=undefined,world=5;', 0),
                ('bye=undefined,nope=undefined;', 19),
                ('hello=undefined,world=5;', 30),
-               ('bye=undefined,nope=undefined;', 49) ]
+               ('bye=undefined,nope=undefined;', 49)]
         v = un_iife_ize.Var(statement)
         v.extract_all()
         ret = v.all
@@ -52,7 +52,7 @@ class CheckVar(unittest.TestCase):
         v.extract_all()
 
         ret = v.all
-        print(ret,len(exp[0][0]),len(ret[0][0]))
+        print(ret, len(exp[0][0]), len(ret[0][0]))
         self.assertEqual(ret, exp)
 
     def test_double_assignment(self):
@@ -71,21 +71,19 @@ class CheckVar(unittest.TestCase):
         v.extract_all()
 
         ret = v.unmodified
-        print("woadh",ret,v.unmodified)
+        print("woadh", ret, v.unmodified)
         self.assertEqual(ret, statement)
-
-
 
     def test_sections_unmodified(self):
         statement = [('var hello,world=5;\nfunction(){}\nvar bye,nope;', 0),
                      ('var hello,world=5;\nvar bye,nope;', 30)]
-        exp = [('\nfunction(){}\n', 18),('', len(statement[0][0])+statement[0][1]) ,
-               ('\n', 48),('', len(statement[1][0])+statement[1][1]) ]
+        exp = [('\nfunction(){}\n', 18), ('', len(statement[0][0]) + statement[0][1]),
+               ('\n', 48), ('', len(statement[1][0]) + statement[1][1])]
         v = un_iife_ize.Var(statement)
         v.extract_all()
         ret = v.unmodified
-        print("ret",ret)
-        print("expt",exp)
+        print("ret", ret)
+        print("expt", exp)
         self.assertEqual(ret, exp)
 
 

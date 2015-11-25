@@ -25,24 +25,22 @@ var = "-VAR"
 unmodified = "-UNMOD"
 
 
-
 class Extractor():
     all_function_pattern = re.compile(r"\s*function(\s*|\s+([\w$]+)?)(\(.*?\))\s*\{")
     anonymous_pattern = re.compile(r"function\s*(\(.*?\))\s*\{")
-    ignore_pattern=anonymous_pattern
+    ignore_pattern = anonymous_pattern
 
     def is_inside_function(self, search_start, declaration_start, content):
-        test=self.ignore_pattern.search(content, pos=search_start,endpos=declaration_start)
+        test = self.ignore_pattern.search(content, pos=search_start, endpos=declaration_start)
         if test is not None:
-            end=self.get_matched_braces_end(test.end(),content)
-            if end<declaration_start:
+            end = self.get_matched_braces_end(test.end(), content)
+            if end < declaration_start:
                 return False
-            return (test,end) #return the entire object to see what's inside
+            return (test, end)  # return the entire object to see what's inside
         else:
             return False
 
-
-    def get_matched_braces_end(self, start,content,starttoken='{',endtoken='}'):
+    def get_matched_braces_end(self, start, content, starttoken='{', endtoken='}'):
         """start: index of { + 1"""
         # content = self.contents
         r_b_index = -1
@@ -66,7 +64,6 @@ class Function(Extractor):
         self.files = []
 
     detection_pattern = re.compile(r"function\s+([\w$]+)?(\(.*?\))\s*\{")
-
 
     def write(self, content, type, index):
         if self.dir is None:
@@ -104,19 +101,16 @@ class Function(Extractor):
         if match is None:
             return None, start
         l_brance_after = match.end()
-        r_brace_index = self.get_matched_braces_end(l_brance_after,self.contents)
+        r_brace_index = self.get_matched_braces_end(l_brance_after, self.contents)
         if match.group(1) is None:
             return None, r_brace_index
 
-        inside_check= self.is_inside_function(start, match.start(),self.contents)
+        inside_check = self.is_inside_function(start, match.start(), self.contents)
         if inside_check:
-            outside_end=inside_check[1]
+            outside_end = inside_check[1]
             return self.detect_declaration(outside_end)
 
-
         return match, r_brace_index
-
-
 
     def get_info(self, match, rbrace):
         ret = {
@@ -149,7 +143,6 @@ class Function(Extractor):
 
 
 class Var(Extractor):
-
     def __init__(self, contents_list, temp=None):
 
         self.contents_list = contents_list
@@ -179,28 +172,29 @@ class Var(Extractor):
             else:
                 content = stuff[0]
                 section_start = stuff[1]
-            self.section_start =section_start
+            self.section_start = section_start
             content_end = len(content)
             search_start = 0
             while True:
                 ret, declaration_index, semi_colon_index = self.extract(content, search_start)
                 if ret is None:
                     non_var = content[search_start:content_end]
-                    self.write(non_var, unmodified,section_start + search_start)
+                    self.write(non_var, unmodified, section_start + search_start)
                     break
 
-                self.write(ret, var,declaration_index + section_start)
+                self.write(ret, var, declaration_index + section_start)
 
                 if search_start != declaration_index:
                     non_var = content[search_start:declaration_index]
                     self.write(non_var, unmodified, section_start + search_start)
                 search_start = semi_colon_index + 1
 
-    iife_pattern=re.compile(r"\s*([\w$]+)?\s*=\s*function(\s*|\s+([\w$]+)?)(\(.*?\))\s*\{")
-    iife_brace=re.compile(r"\s*([\w$]+)?\s*=\s*\(")
-    double_assignment=re.compile(r"\s*([\w$]+)?\s*=\s*([\w$]+)?=\s*")
-    prev=-1
-    count=0
+    iife_pattern = re.compile(r"\s*([\w$]+)?\s*=\s*function(\s*|\s+([\w$]+)?)(\(.*?\))\s*\{")
+    iife_brace = re.compile(r"\s*([\w$]+)?\s*=\s*\(")
+    double_assignment = re.compile(r"\s*([\w$]+)?\s*=\s*([\w$]+)?=\s*")
+    prev = -1
+    count = 0
+
     def extract(self, contents, start=0):
         # find var
         var_index = contents.find('var ', start)
@@ -208,44 +202,34 @@ class Var(Extractor):
             return None, -1, -1
 
         end_var = contents.find(';', var_index)
-        # print(var_index,"woot",self.section_start,"root",contents,"toot",end_var)
 
-
-        after_dec = var_index+len('var ')
-        check_inside_function = self.is_inside_function(start,var_index,contents)
+        after_dec = var_index + len('var ')
+        check_inside_function = self.is_inside_function(start, var_index, contents)
 
         if check_inside_function:
-            return self.extract(contents,check_inside_function[1])
-        iife_output = self.iife_pattern.match(contents,after_dec)
+            return self.extract(contents, check_inside_function[1])
+        iife_output = self.iife_pattern.match(contents, after_dec)
 
         if iife_output:
-            end_var=self.get_matched_braces_end(iife_output.end(),contents)
-            print("iife found!",iife_output.group())
-            return contents[iife_output.start():end_var+1],var_index,end_var
+            end_var = self.get_matched_braces_end(iife_output.end(), contents)
+            print("iife found!", iife_output.group())
+            return contents[iife_output.start():end_var + 1], var_index, end_var
 
-        iife_output = self.iife_brace.match(contents,after_dec)
+        iife_output = self.iife_brace.match(contents, after_dec)
 
         if iife_output:
-            end_var=self.get_matched_braces_end(iife_output.end(),contents,starttoken='(',endtoken=')')
-            print("iife found!",iife_output.group())
-            return contents[iife_output.start():end_var+1],var_index,end_var
+            end_var = self.get_matched_braces_end(iife_output.end(), contents, starttoken='(', endtoken=')')
+            print("iife found!", iife_output.group())
+            return contents[iife_output.start():end_var + 1], var_index, end_var
 
-        dub_assignment= self.double_assignment.match(contents,after_dec)
+        dub_assignment = self.double_assignment.match(contents, after_dec)
         if dub_assignment:
-            end_var=dub_assignment.end()
-            return contents[dub_assignment.start():end_var],var_index,end_var-1
+            end_var = dub_assignment.end()
+            return contents[dub_assignment.start():end_var], var_index, end_var - 1
 
-        dontaddsemicolon=False
-        if end_var==-1:
-            end_var=len(contents)
-        dontaddsemicolon=True
+        return self.format(contents, var_index, end_var), var_index, end_var
 
-
-
-
-        return self.format(contents, var_index, end_var,dontaddsemicolon), var_index, end_var
-
-    def format(self, contents, var_index, end_var,dontaddsemicolon):
+    def format(self, contents, var_index, end_var):
         statement = contents[var_index:end_var]
         # removing var
         decs = statement[3:].split(',')
@@ -270,15 +254,7 @@ def handle_file(rpath, wpath, temp):
     rfile = open(rpath, "r")
     contents = rfile.read()
     rfile.close()
-    stuff = handle_contents(contents, temp,wpath)
-
-    # if wpath is None:
-    #     wpath = rpath + '__no__iife'
-    # wfile = open(wpath, "w+")
-    # if stuff is not None:
-    #     wfile.write(stuff)
-    # wfile.close()
-
+    handle_contents(contents, temp, wpath)
 
 def make_temp_directory(temp, wpath):
     if temp is None:
@@ -304,7 +280,7 @@ def merge_parts(functions, vars, unmodified):
 
 
 def merge_on_stack(contents):
-    function_extractor = Function(contents,None)
+    function_extractor = Function(contents, None)
     function_extractor.extract_all()
 
     all_functions = function_extractor.all
@@ -320,45 +296,42 @@ def merge_on_stack(contents):
     parts = [string for string, index in parts]
     return ''.join(parts)
 
+
 def sort_files(all_files):
-    unsortedfilenames= [(int(name.split('/')[-1].split('-')[0]),name) for name in all_files]
+    unsortedfilenames = [(int(name.split('/')[-1].split('-')[0]), name) for name in all_files]
     unsortedfilenames.sort()
     for i in unsortedfilenames:
         print(i)
-    return [ name for index,name in unsortedfilenames]
+    return [name for index, name in unsortedfilenames]
 
 
-def merge_files(files,writepath):
-    with open(writepath,"w+") as wfile:
+def merge_files(files, writepath):
+    with open(writepath, "w+") as wfile:
         for name in files:
-            with open(name,'r') as part:
+            with open(name, 'r') as part:
                 wfile.write(part.read())
 
 
-def handle_contents(contents, temp=None,writepath=None):
+def handle_contents(contents, temp=None, writepath=None):
     function_extractor = Function(contents, temp)
     function_extractor.extract_all()
 
     if not temp:
         return merge_on_stack(contents)
 
-    all_functions = [x for x in  function_extractor.files if x.endswith(fun)]
+    all_functions = [x for x in function_extractor.files if x.endswith(fun)]
     non_functions = filter(lambda x: x.endswith(nonfun), function_extractor.files)
 
     var_extractor = Var(non_functions, temp)
     var_extractor.extract_all()
-    all_vars = [x for x in  var_extractor.files if x.endswith(var)]# filter(lambda x: x.endswith(var), var_extractor.files)
-    all_unmodified = [x for x in  var_extractor.files if x.endswith(unmodified)] #filter(lambda x: x.endswith(unmodified), var_extractor.files)
-    files=sort_files(all_functions+all_vars+all_unmodified)
-    merge_files(files,writepath)
+    all_vars = [x for x in var_extractor.files if
+                x.endswith(var)]  # filter(lambda x: x.endswith(var), var_extractor.files)
+    all_unmodified = [x for x in var_extractor.files if
+                      x.endswith(unmodified)]  # filter(lambda x: x.endswith(unmodified), var_extractor.files)
+    files = sort_files(all_functions + all_vars + all_unmodified)
+    merge_files(files, writepath)
     shutil.rmtree(temp)
-    #
-    # all_vars = var_extractor.all
-    # not_modified = var_extractor.unmodified
 
-    # parts = merge_parts(all_functions, all_vars, not_modified)
-    # parts = [string for string, index in parts]
-    # return ''.join(parts)
 
 
 def signal_handler(signal, frame):
