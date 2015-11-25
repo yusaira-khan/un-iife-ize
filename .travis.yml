@@ -5,5 +5,5 @@ python:
   - "3.4"
   - "3.5"
 
-install: test/installer.sh
-script:  test/utrunner.sh test/*py
+install: ./test/installer.sh
+script:  ./test/utrunner.sh test/*py
